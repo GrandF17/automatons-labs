@@ -11,8 +11,8 @@ using namespace std;
 #ifndef LAB_ONE
 #define LAB_ONE
 
-vector<vector<ushort>> readMatrix(int x, int y, ifstream& file) {
-    vector<vector<ushort>> matrix(x, vector<ushort>(y));
+vector<vector<uint>> readMatrix(int x, int y, ifstream& file) {
+    vector<vector<uint>> matrix(x, vector<uint>(y));
     for (int i = 0; i < x; i++) {
         for (int j = 0; j < y; j++) {
             file >> matrix[i][j];
@@ -44,7 +44,7 @@ struct linearAutomaton initLinear(ifstream& file) {
     lin.C = readMatrix(n, k, file);
     lin.D = readMatrix(m, k, file);
 
-    lin.state = vector<ushort>(lin.state_len, 0);
+    lin.state = vector<uint>(lin.state_len, 0);
 
     return lin;
 }
@@ -106,12 +106,12 @@ void printAutomatons(struct linearAutomaton lin, struct shiftRegister lfsr) {
 /**
  * linear automaton implementation
  */
-vector<ushort> linStep(struct linearAutomaton* lin, vector<ushort> input) {
-    vector<ushort> new_state =
+vector<uint> linStep(struct linearAutomaton* lin, vector<uint> input) {
+    vector<uint> new_state =
         MatrixMath::mod(MatrixMath::add(MatrixMath::mul(lin->state, lin->A),
                                         MatrixMath::mul(input, lin->B)),
                         lin->field_size);
-    vector<ushort> output =
+    vector<uint> output =
         MatrixMath::mod(MatrixMath::add(MatrixMath::mul(lin->state, lin->C),
                                         MatrixMath::mul(input, lin->D)),
                         lin->field_size);
@@ -120,7 +120,7 @@ vector<ushort> linStep(struct linearAutomaton* lin, vector<ushort> input) {
     lin->state.clear();
     lin->state.resize(new_state.size());
     for (size_t i = 0; i < new_state.size(); ++i)
-        lin->state[i] = static_cast<ushort>(new_state[i]);
+        lin->state[i] = static_cast<uint>(new_state[i]);
 
     return output;
 }
@@ -131,12 +131,12 @@ void linOperation(struct linearAutomaton* lin) {
     for (int i = 0; i < lin->state_len; i++) cin >> lin->state[i];
 
     while (true) {
-        vector<ushort> input(lin->input_len);
+        vector<uint> input(lin->input_len);
         cout << "\n\nEnter new input (" << lin->input_len << " numbers [0;"
              << (lin->field_size - 1) << "]):\n";
         for (int i = 0; i < lin->input_len; i++) cin >> input[i];
 
-        vector<ushort> output = linStep(lin, input);
+        vector<uint> output = linStep(lin, input);
 
         cout << "Output:\n";
         for (int i = 0; i < lin->output_len; i++) cout << output[i] << " ";

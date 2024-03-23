@@ -15,22 +15,22 @@ struct linearAutomaton {
 };
 
 struct shiftRegister {
-    int state_len;  // n
+    uint state_len;  // n
     vector<char> psi, phi;
     uint state;
 };
 
 struct linEqClass {
-    vector<vector<short>> outputSeq, members;
+    vector<vector<uint>> outputSeq, members;
 };
 
 struct LFSREqClassMember {
-    int value;
+    uint value;
     struct LFSREqClassMember *next;
 };
 
 struct LFSREqClass {
-    vector<int> fingerprint;
+    vector<uint> fingerprint;
     struct LFSREqClassMember *members;
     struct LFSREqClass *next;
 };
