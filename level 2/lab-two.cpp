@@ -20,18 +20,6 @@ using namespace std;
 #ifndef LAB_TWO
 #define LAB_TWO
 
-bool nextVector(vector<BigNumber>& vector, BigNumber max) {
-    int len = vector.size();
-    for (int i = len - 1; i >= 0; i--) {
-        if (vector[i] != max - 1) {
-            vector[i]++;
-            for (int j = i + 1; j < len; j++) vector[j] = 0;
-            return true;
-        }
-    }
-    return false;
-}
-
 // === === ======= = =======
 // add new classes / members
 bool addToClasses(LFSREqClass* classes, const vector<uint>& fingerprint,

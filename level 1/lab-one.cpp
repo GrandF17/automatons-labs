@@ -79,34 +79,6 @@ struct shiftRegister initLFSR(ifstream& file) {
     return lfsr;
 }
 
-void printAutomatons(struct linearAutomaton lin, struct shiftRegister lfsr) {
-    cout << "LINEAR\n\n  q=" << lin.field_size << endl;
-    cout << "  m=" << lin.input_len << endl;
-    cout << "  n=" << lin.state_len << endl;
-    cout << "  k=" << lin.output_len << endl << endl;
-
-    uint n = lin.state_len;
-    uint m = lin.input_len;
-    uint k = lin.output_len;
-
-    cout << "A:\n";
-    MatrixMath::print(lin.A);
-    cout << "B:\n";
-    MatrixMath::print(lin.B);
-    cout << "C:\n";
-    MatrixMath::print(lin.C);
-    cout << "D:\n";
-    MatrixMath::print(lin.D);
-
-    cout << "\n\nLFSR\n\nn=" << lfsr.state_len << endl << endl;
-    for (uint i = 0; i < pow(2, lfsr.state_len + 1); i++)
-        cout << static_cast<uint>(lfsr.psi[i]) << " ";
-    cout << "\nphi:\n";
-    for (uint i = 0; i < pow(2, lfsr.state_len + 1); i++)
-        cout << static_cast<uint>(lfsr.phi[i]) << " ";
-    cout << endl;
-}
-
 /**
  * linear automaton implementation
  */
