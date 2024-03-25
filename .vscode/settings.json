@@ -1,5 +1,13 @@
 {
   "files.associations": {
-    "iosfwd": "cpp"
+    "iosfwd": "cpp",
+    "iostream": "cpp",
+    "stdexcept": "cpp",
+    "type_traits": "cpp",
+    "ostream": "cpp",
+    "cmath": "cpp",
+    "*.tcc": "cpp",
+    "algorithm": "cpp",
+    "bitset": "cpp"
   }
 }

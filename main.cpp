@@ -96,7 +96,6 @@ int main(int argc, char** argv) {
             return -1;
         }
 
-        cout << "KEK" << endl;
         shiftRegister lfsr = initLFSR(fileObj);
         if (!parametersBool[2])
             LFSROperation(&lfsr);  // run lab one - search next state

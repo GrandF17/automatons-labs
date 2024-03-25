@@ -1,3 +1,4 @@
+#include "../libraries/BigNumber.h"
 #include "vector"
 
 #ifndef INTERFACES
@@ -5,23 +6,13 @@
 
 using namespace std;
 typedef unsigned int uint;
-typedef unsigned short ushort;
 
-struct linearAutomaton {
-    uint field_size;                        // q
-    uint input_len, state_len, output_len;  // m,n,k
-    vector<vector<uint>> A, B, C, D;
-    vector<uint> state;
-};
-
+// ===== ========
+// Shift Register
 struct shiftRegister {
     uint state_len;  // n
-    vector<char> psi, phi;
     uint state;
-};
-
-struct linEqClass {
-    vector<vector<uint>> outputSeq, members;
+    vector<uint> psi, phi;
 };
 
 struct LFSREqClassMember {
@@ -34,4 +25,18 @@ struct LFSREqClass {
     struct LFSREqClassMember *members;
     struct LFSREqClass *next;
 };
+
+// ====== ==========
+// Linear Automatons
+struct linEqClass {
+    vector<vector<BigNumber>> outputSeq, members;
+};
+
+struct linearAutomaton {
+    uint field_size;                        // q
+    uint input_len, state_len, output_len;  // m,n,k
+    vector<vector<BigNumber>> A, B, C, D;
+    vector<BigNumber> state;
+};
+
 #endif

@@ -1,6 +1,9 @@
 #include <algorithm>
+#include <atomic>   // to use std::enable_if and std::is_arithmetic
+#include <cstddef>  // to use std::enable_if and std::is_arithmetic
 #include <iostream>
 #include <string>
+#include <type_traits>  // to use std::enable_if and std::is_arithmetic
 
 #ifndef BIGNUMBER_LIB
 #define BIGNUMBER_LIB
@@ -27,11 +30,13 @@ class BigNumber {
     bool isNumber(const string& str) const {
         if (str.empty()) return false;
         /**
-         * if i = 0 & str[i] = "-" --> not a reason to call string NOT a number
-         * all other symbols in string SHOULD BE digits
+         * if str[0] != "-" AND str[0] is NaN --> string is not a number
+         * for all i > 0 every symbol in string SHOULD BE a digit
          */
         for (int i = 0; i < str.size(); i++)
-            if (!isdigit(str[i]) || (str[i] == '-' && i == 0)) return false;
+            if ((i == 0 && (!isdigit(str[i]) && str[i] != '-')) ||
+                (i > 0 && !isdigit(str[i])))
+                return false;
 
         return true;
     }
@@ -100,9 +105,14 @@ class BigNumber {
     // === public section ===
    public:
     /**
+     * default constructor
+     */
+    BigNumber() : num("0") {}
+
+    /**
      * constructor for string
      */
-    BigNumber(string digit) : num(digit) {
+    BigNumber(const string& digit) : num(digit) {
         if (!isNumber(digit))
             throw invalid_argument("Invalid argument: not a number");
 
@@ -110,9 +120,137 @@ class BigNumber {
     }
 
     /**
+     * constructor for generic type T, enabled for arithmetic types
+     */
+    template <typename T>
+    BigNumber(const T& digit,
+              typename enable_if<is_integral<T>::value>::type* = 0)
+        : num(to_string(digit)) {}
+
+    /**
+     * basic operands overload for code simplicity
+     */
+    template <typename T>
+    typename enable_if<is_arithmetic<T>::value, BigNumber&>::type operator=(
+        const T& digit) {
+        num = to_string(digit);
+        return *this;
+    }
+
+    BigNumber operator+(const BigNumber& other) const {
+        return BigNumber(num).add(other);
+    }
+
+    BigNumber& operator+=(const BigNumber& other) {
+        *this = *this + other;
+        return *this;
+    }
+
+    /**
+     * prefix operator overload
+     */
+    BigNumber& operator++() {
+        *this += BigNumber(1);
+        // return current value (watch order of operations for prefix)
+        return *this;
+    }
+
+    /**
+     * postfix operator overload
+     */
+    BigNumber operator++(int) {
+        // making a copy of current number
+        BigNumber temp(*this);
+        ++*this;
+        // return current copy (watch order of operations for postfix)
+        return temp;
+    }
+
+    BigNumber operator-(const BigNumber& other) const {
+        return BigNumber(num).sub(other);
+    }
+
+    BigNumber& operator-=(const BigNumber& other) {
+        *this = *this - other;
+        return *this;
+    }
+
+    /**
+     * prefix operator overload
+     */
+    BigNumber& operator--() {
+        *this -= BigNumber(1);
+        // return current value (watch order of operations for prefix)
+        return *this;
+    }
+
+    /**
+     * postfix operator overload
+     */
+    BigNumber operator--(int) {
+        // making a copy of current number
+        BigNumber temp(*this);
+        --*this;
+        // return current copy (watch order of operations for postfix)
+        return temp;
+    }
+
+    BigNumber operator*(const BigNumber& other) const {
+        return BigNumber(num).mul(other);
+    }
+
+    BigNumber& operator*=(const BigNumber& other) {
+        *this = *this * other;
+        return *this;
+    }
+
+    BigNumber operator/(const BigNumber& other) const {
+        return BigNumber(num).div(other);
+    }
+
+    BigNumber& operator/=(const BigNumber& other) {
+        *this = *this / other;
+        return *this;
+    }
+
+    BigNumber operator%(const BigNumber& other) const {
+        return BigNumber(num).mod(other);
+    }
+
+    BigNumber& operator%=(const BigNumber& other) {
+        *this = *this % other;
+        return *this;
+    }
+
+    // ========== ========= ========
+    // comparison operators overload
+    bool operator==(const BigNumber& other) const {
+        return BigNumber(num).eq(other);
+    }
+
+    bool operator!=(const BigNumber& other) const {
+        return !BigNumber(num).eq(other);
+    }
+
+    bool operator<=(const BigNumber& other) const {
+        return BigNumber(num).leq(other);
+    }
+
+    bool operator<(const BigNumber& other) const {
+        return BigNumber(num).le(other);
+    }
+
+    bool operator>=(const BigNumber& other) const {
+        return BigNumber(num).geq(other);
+    }
+
+    bool operator>(const BigNumber& other) const {
+        return BigNumber(num).ge(other);
+    }
+
+    /**
      * other public functions
      */
-
     BigNumber add(BigNumber b) {
         // if [-a + -b] => [-(a + b)]
         if (isNeg(num) && isNeg(b)) {

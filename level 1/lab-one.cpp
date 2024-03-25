@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "../interfaces/interfaces.h"
+#include "../libraries/BigNumber.h"
 #include "../libraries/Matrix.h"
 
 using namespace std;
@@ -11,20 +12,25 @@ using namespace std;
 #ifndef LAB_ONE
 #define LAB_ONE
 
-vector<vector<uint>> readMatrix(int x, int y, ifstream& file) {
-    vector<vector<uint>> matrix(x, vector<uint>(y));
+vector<vector<BigNumber>> readMatrix(int x, int y, ifstream& file) {
+    vector<vector<BigNumber>> matrix(x, vector<BigNumber>(y));
     for (int i = 0; i < x; i++) {
         for (int j = 0; j < y; j++) {
-            file >> matrix[i][j];
-            file.get();  // skip separator
+            string numberStr;
+            file >> numberStr;  // Read the number as a string
+
+            // Create a BigNumber object from the string and place it in the
+            // matrix
+            matrix[i][j] = numberStr;
+
+            file.get();  // Skip the separator
         }
     }
-    file.get();  // skip separator
     return matrix;
 }
 
-char getRegByte(int reg, int size, int index) {
-    return static_cast<char>((reg >> (size - index - 1)) & 0x01);
+uint getRegByte(int reg, int size, int index) {
+    return ((reg >> (size - index - 1)) & 0x01);
 }
 
 struct linearAutomaton initLinear(ifstream& file) {
@@ -35,16 +41,14 @@ struct linearAutomaton initLinear(ifstream& file) {
     file >> lin.input_len >> lin.state_len >> lin.output_len;
     file.ignore(2);
 
-    unsigned int n = lin.state_len;
-    unsigned int m = lin.input_len;
-    unsigned int k = lin.output_len;
+    uint n = lin.state_len, m = lin.input_len, k = lin.output_len;
 
     lin.A = readMatrix(n, n, file);
     lin.B = readMatrix(m, n, file);
     lin.C = readMatrix(n, k, file);
     lin.D = readMatrix(m, k, file);
 
-    lin.state = vector<uint>(lin.state_len, 0);
+    lin.state = vector<BigNumber>(lin.state_len, BigNumber(0));
 
     return lin;
 }
@@ -55,17 +59,17 @@ struct shiftRegister initLFSR(ifstream& file) {
     file >> lfsr.state_len;
     file.ignore(2);
 
-    int func_len = pow(2, lfsr.state_len + 1);
-    lfsr.phi = vector<char>(func_len, 0);
-    lfsr.psi = vector<char>(func_len, 0);
+    uint func_len = pow(2, lfsr.state_len + 1);
+    lfsr.phi = vector<uint>(func_len, 0);
+    lfsr.psi = vector<uint>(func_len, 0);
 
-    for (int i = 0; i < func_len; i++) {
+    for (uint i = 0; i < func_len; i++) {
         file >> lfsr.phi[i];
         file.get();
     }
     file.get();
 
-    for (int i = 0; i < func_len; i++) {
+    for (uint i = 0; i < func_len; i++) {
         file >> lfsr.psi[i];
         file.get();
     }
@@ -81,9 +85,9 @@ void printAutomatons(struct linearAutomaton lin, struct shiftRegister lfsr) {
     cout << "  n=" << lin.state_len << endl;
     cout << "  k=" << lin.output_len << endl << endl;
 
-    int n = lin.state_len;
-    int m = lin.input_len;
-    int k = lin.output_len;
+    uint n = lin.state_len;
+    uint m = lin.input_len;
+    uint k = lin.output_len;
 
     cout << "A:\n";
     MatrixMath::print(lin.A);
@@ -95,32 +99,30 @@ void printAutomatons(struct linearAutomaton lin, struct shiftRegister lfsr) {
     MatrixMath::print(lin.D);
 
     cout << "\n\nLFSR\n\nn=" << lfsr.state_len << endl << endl;
-    for (int i = 0; i < pow(2, lfsr.state_len + 1); i++)
-        cout << static_cast<int>(lfsr.psi[i]) << " ";
+    for (uint i = 0; i < pow(2, lfsr.state_len + 1); i++)
+        cout << static_cast<uint>(lfsr.psi[i]) << " ";
     cout << "\nphi:\n";
-    for (int i = 0; i < pow(2, lfsr.state_len + 1); i++)
-        cout << static_cast<int>(lfsr.phi[i]) << " ";
+    for (uint i = 0; i < pow(2, lfsr.state_len + 1); i++)
+        cout << static_cast<uint>(lfsr.phi[i]) << " ";
     cout << endl;
 }
 
 /**
  * linear automaton implementation
  */
-vector<uint> linStep(struct linearAutomaton* lin, vector<uint> input) {
-    vector<uint> new_state =
+vector<BigNumber> linStep(struct linearAutomaton* lin,
+                          vector<BigNumber> input) {
+    vector<BigNumber> new_state =
         MatrixMath::mod(MatrixMath::add(MatrixMath::mul(lin->state, lin->A),
                                         MatrixMath::mul(input, lin->B)),
-                        lin->field_size);
-    vector<uint> output =
+                        BigNumber(lin->field_size));
+    vector<BigNumber> output =
         MatrixMath::mod(MatrixMath::add(MatrixMath::mul(lin->state, lin->C),
                                         MatrixMath::mul(input, lin->D)),
-                        lin->field_size);
+                        BigNumber(lin->field_size));
 
     // set new state in linear automaton
-    lin->state.clear();
-    lin->state.resize(new_state.size());
-    for (size_t i = 0; i < new_state.size(); ++i)
-        lin->state[i] = static_cast<uint>(new_state[i]);
+    lin->state = new_state;
 
     return output;
 }
@@ -128,20 +130,28 @@ vector<uint> linStep(struct linearAutomaton* lin, vector<uint> input) {
 void linOperation(struct linearAutomaton* lin) {
     cout << "\nEnter initial state (" << lin->state_len << " numbers [0;"
          << (lin->field_size - 1) << "]):\n";
-    for (int i = 0; i < lin->state_len; i++) cin >> lin->state[i];
+    for (uint i = 0; i < lin->state_len; i++) {
+        string linStateStr;
+        cin >> linStateStr;
+        lin->state[i] = BigNumber(linStateStr);
+    }
 
     while (true) {
-        vector<uint> input(lin->input_len);
+        vector<BigNumber> input(lin->input_len);
         cout << "\n\nEnter new input (" << lin->input_len << " numbers [0;"
              << (lin->field_size - 1) << "]):\n";
-        for (int i = 0; i < lin->input_len; i++) cin >> input[i];
+        for (uint i = 0; i < lin->input_len; i++) {
+            string outputStr;
+            cin >> outputStr;
+            input[i] = BigNumber(outputStr);
+        }
 
-        vector<uint> output = linStep(lin, input);
+        vector<BigNumber> output = linStep(lin, input);
 
         cout << "Output:\n";
-        for (int i = 0; i < lin->output_len; i++) cout << output[i] << " ";
+        for (uint i = 0; i < lin->output_len; i++) cout << output[i] << " ";
         cout << "\nNew state:\n";
-        for (int i = 0; i < lin->state_len; i++) cout << lin->state[i] << " ";
+        for (uint i = 0; i < lin->state_len; i++) cout << lin->state[i] << " ";
         output.clear();
     }
 }
@@ -149,9 +159,9 @@ void linOperation(struct linearAutomaton* lin) {
 /**
  * linear feedback shift register implementation
  */
-char LFSRStep(struct shiftRegister* lfsr, char input) {
-    char new_bit = lfsr->phi[lfsr->state * 2 + input];
-    char output = lfsr->psi[lfsr->state * 2 + new_bit];
+uint LFSRStep(struct shiftRegister* lfsr, uint input) {
+    uint new_bit = lfsr->phi[lfsr->state * 2 + input];
+    uint output = lfsr->psi[lfsr->state * 2 + new_bit];
     /**
      * << 1 - left shift (or multiplication by 2)
      * | - OR operation (1 | 0 = 1, 1 | 1 = 1, 0 | 0 = 0)
@@ -172,7 +182,7 @@ void LFSROperation(struct shiftRegister* lfsr) {
     cout << "\nEnter initial state (" << lfsr->state_len
          << " numbers [0;1]):" << endl;
 
-    char bit;  // bit entered by user in console
+    uint bit;  // bit entered by user in console
     for (int i = 0; i < lfsr->state_len; i++) {
         cin >> bit;
         lfsr->state = (lfsr->state << 1) | bit;
@@ -182,13 +192,11 @@ void LFSROperation(struct shiftRegister* lfsr) {
         cout << "\n\nEnter new input (0/1): ";
         cin >> bit;
 
-        char output = LFSRStep(lfsr, bit);
-        cout << "Output: " << static_cast<int>(output);
+        uint output = LFSRStep(lfsr, bit);
+        cout << "Output: " << output;
         cout << "\nNew state: ";
         for (int i = 0; i < lfsr->state_len; i++)
-            cout << static_cast<int>(
-                        getRegByte(lfsr->state, lfsr->state_len, i))
-                 << " ";
+            cout << getRegByte(lfsr->state, lfsr->state_len, i) << " ";
     }
 }
 
