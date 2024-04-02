@@ -104,7 +104,7 @@ vector<vector<T>> initDirectedGraph(linearAutomaton* lin) {
     /**
      * go through all states
      */
-    for (size_t i = 0; i < pow(lin->field_size, lin->state_len); i++) {
+    for (size_t i = 0; i < pow(lin->field_size, lin->state_len) - 1; i++) {
         vector<T> currentInput(lin->input_len, 0);
         vector<T> stateVector;
 
@@ -122,7 +122,6 @@ vector<vector<T>> initDirectedGraph(linearAutomaton* lin) {
             }
 
             stateVector.push_back(asosiatedNumToVector);
-
             currentInput = incrementVector(currentInput, (T)lin->field_size);
         }
 
@@ -255,6 +254,7 @@ bool kosarajuAlgorithm(vector<vector<T>>& adjacencyList) {
      * Build the reversed graph
      */
     vector<vector<T>> reversed = reverseGraph(adjacencyList);
+    if (false) printGraph(reversed);
 
     /**
      * Step 2:
@@ -278,14 +278,12 @@ bool kosarajuAlgorithm(vector<vector<T>>& adjacencyList) {
         orderStack.pop();
 
         if (visited[current] == vertexStatus::WHITE) {
-            // strongly connected component
+            // Strongly Connected Component
             vector<T> currentSCC = DFS(reversed, visited, current);
 
             if (true) {
                 cout << "Component: ";
-                for (const T& vertex : currentSCC) {
-                    cout << vertex << " ";
-                }
+                for (const T& vertex : currentSCC) cout << vertex << " ";
                 cout << endl;
             }
 
@@ -308,22 +306,12 @@ void printConclusion(bool isStronglyConnected, bool isConnected) {
     /**
      * if automaton is STRONGLY connected it is also connected
      */
-    if (isStronglyConnected) {
-        cout << "Current automaton is strongly connected.";
-        return;
-    }
-
-    /**
-     * if automaton is NOT strongly connected check if connected
-     */
-    cout << "Current automaton is NOT strongly connected ";
-
-    if (isConnected)
-        cout << " and NOT ";
-    else
-        cout << "BUT is ";
-
-    cout << "connected.";
+    if (isStronglyConnected)
+        cout << "Automaton is strongly connected." << endl;
+    else if (isConnected)
+        cout << "Automaton is connected." << endl;
+    else if (!isConnected && !isStronglyConnected)
+        cout << "Automaton is NOT connected." << endl;
 }
 
 /**
@@ -334,9 +322,7 @@ void graphConnectivityCheck(AutomatonType* automaton) {
     vector<vector<vertexType>> adjacencyList =
         initDirectedGraph<vertexType>(automaton);
 
-    if (true) {
-        printGraph(adjacencyList);
-    }
+    if (false) printGraph(adjacencyList);
 
     /**
      * detecting if automaton is STRONGLY connected
@@ -360,6 +346,8 @@ void graphConnectivityCheck(AutomatonType* automaton) {
      */
     vector<vector<vertexType>> undirectedGraph =
         initUndirectedGraph(adjacencyList);
+    if (false) printGraph(undirectedGraph);
+
     vector<vertexType> visitResult =
         DFS(undirectedGraph, visited, (vertexType)0);
     bool isConnected = visitResult.size() == adjacencyList.size();
