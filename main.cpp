@@ -3,8 +3,9 @@
 #include <iostream>
 #include <tuple>
 
-#include "./level 1/lab-one.cpp"
-#include "./level 2/lab-two.cpp"
+// #include "./level 1/lab-one.cpp"
+// #include "./level 2/lab-two.cpp"
+#include "./level 3/lab-three.cpp"
 
 // for simplicity
 using namespace std;
@@ -79,11 +80,13 @@ int main(int argc, char** argv) {
 
         linearAutomaton lin = initLinear(fileObj);
 
-        if (!parametersBool[2])
-            linOperation(&lin);  // run lab one - search next state
-        if (parametersBool[2])
-            findLinEqClasses(
-                &lin);  // run lab two - search of equvivalent classes
+        // if (!parametersBool[2])
+        //     linOperation(&lin);  // run lab one - search next state
+        // if (parametersBool[2])
+        //     findLinEqClasses(
+        //         &lin);  // run lab two - search of equvivalent classes
+        graphConnectivityCheck<linearAutomaton, linearAutomaton::VertexType>(
+            &lin);
     }
 
     if (parametersBool[1]) {
@@ -97,11 +100,13 @@ int main(int argc, char** argv) {
         }
 
         shiftRegister lfsr = initLFSR(fileObj);
-        if (!parametersBool[2])
-            LFSROperation(&lfsr);  // run lab one - search next state
-        if (parametersBool[2])
-            findLFSREqClasses(
-                &lfsr);  // run lab two - search of equvivalent classes
+
+        // if (!parametersBool[2])
+        //     LFSROperation(&lfsr);  // run lab one - search next state
+        // if (parametersBool[2])
+        //     findLFSREqClasses(
+        //         &lfsr);  // run lab two - search of equvivalent classes
+        graphConnectivityCheck<shiftRegister, shiftRegister::VertexType>(&lfsr);
     }
 
     return 0;

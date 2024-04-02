@@ -4,7 +4,6 @@
 #include <vector>
 
 #include "../interfaces/interfaces.h"
-#include "../libraries/BigNumber.h"
 #include "../libraries/Matrix.h"
 
 using namespace std;
@@ -12,11 +11,11 @@ using namespace std;
 #ifndef LAB_ONE
 #define LAB_ONE
 
-vector<vector<BigNumber>> readMatrix(int x, int y, ifstream& file) {
-    vector<vector<BigNumber>> matrix(x, vector<BigNumber>(y));
+vector<vector<ullint>> readMatrix(int x, int y, ifstream& file) {
+    vector<vector<ullint>> matrix(x, vector<ullint>(y));
     for (int i = 0; i < x; i++) {
         for (int j = 0; j < y; j++) {
-            string numberStr;
+            ullint numberStr;
             file >> numberStr;  // Read the number as a string
 
             // Create a BigNumber object from the string and place it in the
@@ -48,7 +47,7 @@ struct linearAutomaton initLinear(ifstream& file) {
     lin.C = readMatrix(n, k, file);
     lin.D = readMatrix(m, k, file);
 
-    lin.state = vector<BigNumber>(lin.state_len, BigNumber(0));
+    lin.state = vector<ullint>(lin.state_len, 0);
 
     return lin;
 }
@@ -82,20 +81,20 @@ struct shiftRegister initLFSR(ifstream& file) {
 /**
  * linear automaton implementation
  */
-vector<BigNumber> linStep(struct linearAutomaton* lin,
-                          vector<BigNumber> input) {
-    vector<BigNumber> new_state =
+vector<ullint> linStep(struct linearAutomaton* lin, vector<ullint> input) {
+    vector<ullint> new_state =
         MatrixMath::mod(MatrixMath::add(MatrixMath::mul(lin->state, lin->A),
                                         MatrixMath::mul(input, lin->B)),
-                        BigNumber(lin->field_size));
-    vector<BigNumber> output =
+                        (ullint)lin->field_size);
+    vector<ullint> output =
         MatrixMath::mod(MatrixMath::add(MatrixMath::mul(lin->state, lin->C),
                                         MatrixMath::mul(input, lin->D)),
-                        BigNumber(lin->field_size));
+                        (ullint)lin->field_size);
 
-    // set new state in linear automaton
+    /**
+     * setting new state in linear automaton
+     */
     lin->state = new_state;
-
     return output;
 }
 
@@ -103,22 +102,22 @@ void linOperation(struct linearAutomaton* lin) {
     cout << "\nEnter initial state (" << lin->state_len << " numbers [0;"
          << (lin->field_size - 1) << "]):\n";
     for (uint i = 0; i < lin->state_len; i++) {
-        string linStateStr;
+        ullint linStateStr;
         cin >> linStateStr;
-        lin->state[i] = BigNumber(linStateStr);
+        lin->state[i] = linStateStr;
     }
 
     while (true) {
-        vector<BigNumber> input(lin->input_len);
+        vector<ullint> input(lin->input_len);
         cout << "\n\nEnter new input (" << lin->input_len << " numbers [0;"
              << (lin->field_size - 1) << "]):\n";
         for (uint i = 0; i < lin->input_len; i++) {
-            string outputStr;
+            ullint outputStr;
             cin >> outputStr;
-            input[i] = BigNumber(outputStr);
+            input[i] = outputStr;
         }
 
-        vector<BigNumber> output = linStep(lin, input);
+        vector<ullint> output = linStep(lin, input);
 
         cout << "Output:\n";
         for (uint i = 0; i < lin->output_len; i++) cout << output[i] << " ";

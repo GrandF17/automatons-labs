@@ -1,5 +1,3 @@
-#include "./lab-two.h"
-
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -12,7 +10,6 @@
 
 #include "../interfaces/interfaces.h"
 #include "../level 1/lab-one.cpp"
-#include "../libraries/BigNumber.h"
 #include "../libraries/Matrix.h"
 
 using namespace std;
@@ -236,12 +233,12 @@ void findLFSREqClasses(shiftRegister* lfsr) {
  * @param size - power of C in diagnostic matrix
  * @returns diagnostic matrix: [C, C*A, C*A^2,  ... , C*A^{size - 1}]
  */
-vector<vector<BigNumber>> diagnosticMatrix(struct linearAutomaton* lin,
-                                           uint size) {
+vector<vector<ullint>> diagnosticMatrix(struct linearAutomaton* lin,
+                                        uint size) {
     /**
      * using lib Matrix for mul of C and A
      */
-    vector<vector<vector<BigNumber>>> diagnosticMatrix;
+    vector<vector<vector<ullint>>> diagnosticMatrix;
     for (uint i = 0; i < size; i++) {
         /**
          * if first iteration, where only C is placed in diagonstic mx
@@ -254,8 +251,8 @@ vector<vector<BigNumber>> diagnosticMatrix(struct linearAutomaton* lin,
         /**
          * creating a matrix with 1 along the main diagonal
          */
-        vector<vector<BigNumber>> aMatrixPowered(
-            lin->A.size(), vector<BigNumber>(lin->A[0].size(), 0));
+        vector<vector<ullint>> aMatrixPowered(
+            lin->A.size(), vector<ullint>(lin->A[0].size(), 0));
         for (int i = 0; i < aMatrixPowered.size(); ++i)
             aMatrixPowered[i][i] = 1;
 
@@ -265,41 +262,21 @@ vector<vector<BigNumber>> diagnosticMatrix(struct linearAutomaton* lin,
         for (uint aDegree = 0; aDegree < i; aDegree++)
             aMatrixPowered =
                 MatrixMath::mod(MatrixMath::mul(aMatrixPowered, lin->A),
-                                BigNumber(lin->field_size));
-
-        /**
-         * printing details of matrix operations
-         */
-        if (false) {
-            cout << "A^" << i << ":" << endl;
-            MatrixMath::print(aMatrixPowered);
-            cout << endl;
-
-            cout << "A^" << i << "*C:" << endl;
-            MatrixMath::print(MatrixMath::mul(aMatrixPowered, lin->C));
-            cout << endl;
-
-            cout << "A^" << i << "*C mod " << lin->field_size << ":" << endl;
-            MatrixMath::print(
-                MatrixMath::mod(MatrixMath::mul(aMatrixPowered, lin->C),
-                                BigNumber(lin->field_size)));
-            cout << endl;
-        }
+                                (ullint)lin->field_size);
 
         /**
          * C * A^i mod fieldSize
          */
-        diagnosticMatrix.push_back(
-            MatrixMath::mod(MatrixMath::mul(aMatrixPowered, lin->C),
-                            BigNumber(lin->field_size)));
+        diagnosticMatrix.push_back(MatrixMath::mod(
+            MatrixMath::mul(aMatrixPowered, lin->C), (ullint)lin->field_size));
     }
 
     /**
      * conversion from 3D to 2D matrix placed horizontally
      */
-    vector<vector<BigNumber>> twoDimentionMatrix;
+    vector<vector<ullint>> twoDimentionMatrix;
     for (uint j = 0; j < diagnosticMatrix[0].size(); j++) {
-        vector<BigNumber> row;
+        vector<ullint> row;
         for (uint i = 0; i < diagnosticMatrix.size(); i++)
             for (uint k = 0; k < diagnosticMatrix[0][0].size(); k++)
                 row.push_back(diagnosticMatrix[i][j][k]);
@@ -313,7 +290,7 @@ vector<vector<BigNumber>> diagnosticMatrix(struct linearAutomaton* lin,
  * using Gauss-Jordan elimination method
  * for searching matrix rank
  */
-uint rankOfMatrix(vector<vector<BigNumber>> matrix, BigNumber mod) {
+uint rankOfMatrix(vector<vector<ullint>> matrix, ullint mod) {
     uint rowCount = matrix.size();
     if (rowCount == 0) return 0;
     uint colCount = matrix[0].size();
@@ -329,7 +306,7 @@ uint rankOfMatrix(vector<vector<BigNumber>> matrix, BigNumber mod) {
 
         // reset elements below the current element to zero
         for (uint row = rank + 1; row < rowCount; row++) {
-            BigNumber factor = matrix[row][col] / matrix[rank][col];
+            ullint factor = matrix[row][col] / matrix[rank][col];
             if (false) {
                 cout << matrix[row][col] << "/"
                      << " = " << matrix[rank][col] << factor << endl;
@@ -338,38 +315,32 @@ uint rankOfMatrix(vector<vector<BigNumber>> matrix, BigNumber mod) {
             for (uint i = col; i < colCount; i++) {
                 matrix[row][i] -= (factor * matrix[rank][i]) % mod;
                 // make sure the result remains non-negative
-                if (matrix[row][i] < BigNumber(0)) matrix[row][i] += mod;
+                if (matrix[row][i] < 0) matrix[row][i] += mod;
             }
         }
         rank++;
     }
 
-    if (false) {
-        cout << "Matrix: " << endl;
-        MatrixMath::print(matrix);
-    }
-    cout << endl;
-
     return rank;
 }
 
 void findLinEqClasses(linearAutomaton* lin) {
-    uint delta = 0, prev_rank = 0, rank = 0;
-    vector<vector<BigNumber>> K;
+    uint delta = 0, prevRank = 0, rank = 0;
+    vector<vector<ullint>> K;
 
     for (uint i = 1; i <= lin->state_len; i++) {
         K = diagnosticMatrix(lin, i);
-        rank = rankOfMatrix(K, BigNumber(lin->field_size));
+        rank = rankOfMatrix(K, (ullint)lin->field_size);
 
         MatrixMath::print(K);
         K.clear();
         cout << rank << " - rank" << endl;
 
-        if (rank == prev_rank) {
+        if (rank == prevRank) {
             delta = i - 1;
             break;
         }
-        prev_rank = rank;
+        prevRank = rank;
     }
 
     if (delta == 0) delta = lin->state_len;
@@ -383,12 +354,11 @@ void findLinEqClasses(linearAutomaton* lin) {
         cout << rank << " - rank" << endl;
     }
 
-    BigNumber mu = BigNumber(lin->field_size).pow(BigNumber(rank));
-    BigNumber compVar =
-        BigNumber(lin->field_size).pow(BigNumber(lin->state_len));
+    ullint mu = pow((ullint)lin->field_size, ((ullint)rank));
+    ullint compVar = pow((ullint)lin->field_size, (ullint)lin->state_len);
 
     cout << "mu=" << mu << ", delta=" << delta << endl;
-    cout << "Automaton is " << (mu.eq(compVar) ? "" : "not ") << "minimal."
+    cout << "Automaton is " << ((mu == compVar) ? "" : "not ") << "minimal."
          << endl;
 }
 

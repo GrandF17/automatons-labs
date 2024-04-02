@@ -90,11 +90,13 @@ class MatrixMath {
     static vector<vector<T>> mod(const vector<vector<T>>& matrix,
                                  const T modulus) {
         vector<vector<T>> result(matrix);
+
         for (size_t i = 0; i < result.size(); ++i) {
             for (size_t j = 0; j < result[i].size(); ++j) {
                 result[i][j] %= modulus;
             }
         }
+
         return result;
     }
 
