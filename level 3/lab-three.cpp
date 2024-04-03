@@ -10,7 +10,8 @@
 #include <vector>
 
 #include "../interfaces/interfaces.h"
-#include "../level 1/lab-one.cpp"
+#include "../level 1/lfsr.cpp"
+#include "../level 1/linear.cpp"
 
 using namespace std;
 

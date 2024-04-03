@@ -3,8 +3,9 @@
 #include <iostream>
 #include <tuple>
 
-// #include "./level 1/lab-one.cpp"
-// #include "./level 2/lab-two.cpp"
+#include "./level 1/lfsr.cpp"
+#include "./level 1/linear.cpp"
+#include "./level 2/lab-two.cpp"
 #include "./level 3/lab-three.cpp"
 
 // for simplicity
@@ -25,6 +26,7 @@ void printHelpMessage() {
          << "-lfsr [path]: Run LFSR automaton based on config by given path.\n"
          << "-eqClasses: runs search of equvivalent classes in current "
             "automaton\n"
+         << "-cClasses: runs search of all connectivity classes in automaton\n"
          << "If no path detected, program will use DEFAULT_PATH.\n"
          << "===========================\n"
          << endl;
@@ -53,7 +55,7 @@ int main(int argc, char** argv) {
      * [0] - lin, [1] - lfsr, ...
      * all false by default
      */
-    vector<string> parameters = {"-lin", "-lfsr", "-eqClasses"};
+    vector<string> parameters = {"-lin", "-lfsr", "-eqClasses", "-cClasses"};
     vector<bool> parametersBool(parameters.size(), false);
 
     /**
@@ -66,6 +68,8 @@ int main(int argc, char** argv) {
 
         // exit if selected both "-lin" & "-lfsr"
         if (parametersBool[0] && parametersBool[1]) return 0;
+        // exit if selected both "-eqClasses" & "-cClasses"
+        if (parametersBool[2] && parametersBool[3]) return 0;
     }
 
     if (parametersBool[0]) {
@@ -80,13 +84,14 @@ int main(int argc, char** argv) {
 
         linearAutomaton lin = initLinear(fileObj);
 
-        // if (!parametersBool[2])
-        //     linOperation(&lin);  // run lab one - search next state
-        // if (parametersBool[2])
-        //     findLinEqClasses(
-        //         &lin);  // run lab two - search of equvivalent classes
-        graphConnectivityCheck<linearAutomaton, linearAutomaton::VertexType>(
-            &lin);
+        if (!parametersBool[2] && !parametersBool[3])
+            linOperation(&lin);  // run lab one - search next state
+        if (parametersBool[2])
+            findLinEqClasses(
+                &lin);  // run lab two - search of equvivalent classes
+        if (parametersBool[3])
+            graphConnectivityCheck<linearAutomaton,
+                                   linearAutomaton::VertexType>(&lin);
     }
 
     if (parametersBool[1]) {
@@ -101,12 +106,14 @@ int main(int argc, char** argv) {
 
         shiftRegister lfsr = initLFSR(fileObj);
 
-        // if (!parametersBool[2])
-        //     LFSROperation(&lfsr);  // run lab one - search next state
-        // if (parametersBool[2])
-        //     findLFSREqClasses(
-        //         &lfsr);  // run lab two - search of equvivalent classes
-        graphConnectivityCheck<shiftRegister, shiftRegister::VertexType>(&lfsr);
+        if (!parametersBool[2] && !parametersBool[3])
+            LFSROperation(&lfsr);  // run lab one - search next state
+        if (parametersBool[2])
+            findLFSREqClasses(
+                &lfsr);  // run lab two - search of equvivalent classes
+        if (parametersBool[3])
+            graphConnectivityCheck<shiftRegister, shiftRegister::VertexType>(
+                &lfsr);
     }
 
     return 0;
