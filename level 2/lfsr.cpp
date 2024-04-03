@@ -1,3 +1,5 @@
+#include "../level 1/lfsr.cpp"
+
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -9,19 +11,19 @@
 #include <vector>
 
 #include "../interfaces/interfaces.h"
-#include "../level 1/lfsr.cpp"
 #include "../level 1/linear.cpp"
 #include "../libraries/Matrix.h"
+#include "../utils/logs.cpp"
 
 using namespace std;
 
-#ifndef LAB_TWO
-#define LAB_TWO
+#ifndef LAB_TWO_REG
+#define LAB_TWO_REG
 
 // === === ======= = =======
 // add new classes / members
-bool addToClasses(LFSREqClass* classes, const vector<uint>& fingerprint,
-                  uint state) {
+bool addToClasses(LFSREqClass* classes, const vector<vTypeReg>& fingerprint,
+                  vTypeReg state) {
     if (!classes) return false;
 
     if (classes->fingerprint == fingerprint) {
@@ -38,7 +40,8 @@ bool addToClasses(LFSREqClass* classes, const vector<uint>& fingerprint,
     return addToClasses(classes->next, fingerprint, state);
 }
 
-void appendClass(LFSREqClass** classes, uint state, vector<uint> fingerprint) {
+void appendClass(LFSREqClass** classes, vTypeReg state,
+                 vector<vTypeReg> fingerprint) {
     LFSREqClassMember* members = new LFSREqClassMember;
     members->value = state;
     members->next = nullptr;
@@ -61,7 +64,7 @@ int getClassLen(LFSREqClass* currentClass) {
 
 // ============================================
 // ======= searching for specific class =======
-bool scanMembers(LFSREqClassMember* member, uint state) {
+bool scanMembers(LFSREqClassMember* member, vTypeReg state) {
     /**
      * if current member == state return true
      */
@@ -79,7 +82,7 @@ bool scanMembers(LFSREqClassMember* member, uint state) {
 /**
  * @returns class index and -1 if not found
  */
-uint getClass(LFSREqClass* currentClass, uint state) {
+vTypeReg getClass(LFSREqClass* currentClass, vTypeReg state) {
     /**
      * if members of this class do CONTAIN the required state -->
      * return 0
@@ -130,11 +133,7 @@ void freeClasses(LFSREqClass* currentClass) {
  */
 void printMembers(LFSREqClassMember* member) {
     if (member == nullptr) return;
-
-    // 4 * 4 = 16 --> 2^16 = max value of short
-    bitset<sizeof(uint) * 4 /* bytes */> bits(member->value);
-    cout << member->value << "(" << bits << ")"
-         << " ";
+    printNumberAsBits(member->value);
     printMembers(member->next);
 }
 
@@ -155,8 +154,8 @@ void printClasses(LFSREqClass* classes) {
 void findLFSREqClasses(shiftRegister* lfsr) {
     struct LFSREqClass* classes = nullptr;
 
-    for (uint state = 0; state < pow(2, lfsr->state_len); state++) {
-        vector<uint> fingerprint(2);
+    for (vTypeReg state = 0; state < pow(2, lfsr->stateLen); state++) {
+        vector<vTypeReg> fingerprint(2);
 
         lfsr->state = state;
         fingerprint[0] = LFSRStep(lfsr, 0);  // left result (as bin tree)
@@ -172,7 +171,7 @@ void findLFSREqClasses(shiftRegister* lfsr) {
     cout << "First iteration: " << endl;
     printClasses(classes);
 
-    uint iteration = 2;
+    vTypeReg iteration = 2;
     LFSREqClass *oldClasses = classes, *newClasses = nullptr;
 
     if (getClassLen(oldClasses) == 0) {
@@ -193,8 +192,8 @@ void findLFSREqClasses(shiftRegister* lfsr) {
 
             for (LFSREqClassMember* member = oldClass->members; member;
                  member = member->next) {
-                uint state = member->value;
-                vector<uint> fingerprint(2);
+                vTypeReg state = member->value;
+                vector<vTypeReg> fingerprint(2);
 
                 lfsr->state = state;
                 LFSRStep(lfsr, 0);
@@ -221,146 +220,11 @@ void findLFSREqClasses(shiftRegister* lfsr) {
 
     cout << "mu=" << getClassLen(newClasses) << ", delta=" << iteration - 2
          << endl;
-    if (getClassLen(newClasses) == pow(2, lfsr->state_len))
+    if (getClassLen(newClasses) == pow(2, lfsr->stateLen))
         cout << "Automaton is minimal" << endl;
     else
         cout << "Automaton is not minimal" << endl;
     return;
-}
-
-/**
- * @param lin - linear automaton as Object containing 'state'
- * and matrices: A, B, C, D
- * @param size - power of C in diagnostic matrix
- * @returns diagnostic matrix: [C, C*A, C*A^2,  ... , C*A^{size - 1}]
- */
-vector<vector<ullint>> diagnosticMatrix(struct linearAutomaton* lin,
-                                        uint size) {
-    /**
-     * using lib Matrix for mul of C and A
-     */
-    vector<vector<vector<ullint>>> diagnosticMatrix;
-    for (uint i = 0; i < size; i++) {
-        /**
-         * if first iteration, where only C is placed in diagonstic mx
-         */
-        if (i == 0) {
-            diagnosticMatrix.push_back(lin->C);
-            continue;
-        }
-
-        /**
-         * creating a matrix with 1 along the main diagonal
-         */
-        vector<vector<ullint>> aMatrixPowered(
-            lin->A.size(), vector<ullint>(lin->A[0].size(), 0));
-        for (int i = 0; i < aMatrixPowered.size(); ++i)
-            aMatrixPowered[i][i] = 1;
-
-        /**
-         * raising A to the i-th power
-         */
-        for (uint aDegree = 0; aDegree < i; aDegree++)
-            aMatrixPowered =
-                MatrixMath::mod(MatrixMath::mul(aMatrixPowered, lin->A),
-                                (ullint)lin->field_size);
-
-        /**
-         * C * A^i mod fieldSize
-         */
-        diagnosticMatrix.push_back(MatrixMath::mod(
-            MatrixMath::mul(aMatrixPowered, lin->C), (ullint)lin->field_size));
-    }
-
-    /**
-     * conversion from 3D to 2D matrix placed horizontally
-     */
-    vector<vector<ullint>> twoDimentionMatrix;
-    for (uint j = 0; j < diagnosticMatrix[0].size(); j++) {
-        vector<ullint> row;
-        for (uint i = 0; i < diagnosticMatrix.size(); i++)
-            for (uint k = 0; k < diagnosticMatrix[0][0].size(); k++)
-                row.push_back(diagnosticMatrix[i][j][k]);
-
-        twoDimentionMatrix.push_back(row);
-    }
-    return twoDimentionMatrix;
-}
-
-/**
- * using Gauss-Jordan elimination method
- * for searching matrix rank
- */
-uint rankOfMatrix(vector<vector<ullint>> matrix, ullint mod) {
-    uint rowCount = matrix.size();
-    if (rowCount == 0) return 0;
-    uint colCount = matrix[0].size();
-    uint rank = 0;  // rank can't be less than zero
-
-    for (uint col = 0; col < colCount; col++) {
-        uint pivotRow = rank;
-        while (pivotRow < rowCount && matrix[pivotRow][col] == 0) ++pivotRow;
-        if (pivotRow == rowCount) continue;
-
-        // rearrange the lines so that the current element is non-zero
-        swap(matrix[rank], matrix[pivotRow]);
-
-        // reset elements below the current element to zero
-        for (uint row = rank + 1; row < rowCount; row++) {
-            ullint factor = matrix[row][col] / matrix[rank][col];
-            if (false) {
-                cout << matrix[row][col] << "/"
-                     << " = " << matrix[rank][col] << factor << endl;
-            }
-
-            for (uint i = col; i < colCount; i++) {
-                matrix[row][i] -= (factor * matrix[rank][i]) % mod;
-                // make sure the result remains non-negative
-                if (matrix[row][i] < 0) matrix[row][i] += mod;
-            }
-        }
-        rank++;
-    }
-
-    return rank;
-}
-
-void findLinEqClasses(linearAutomaton* lin) {
-    uint delta = 0, prevRank = 0, rank = 0;
-    vector<vector<ullint>> K;
-
-    for (uint i = 1; i <= lin->state_len; i++) {
-        K = diagnosticMatrix(lin, i);
-        rank = rankOfMatrix(K, (ullint)lin->field_size);
-
-        MatrixMath::print(K);
-        K.clear();
-        cout << rank << " - rank" << endl;
-
-        if (rank == prevRank) {
-            delta = i - 1;
-            break;
-        }
-        prevRank = rank;
-    }
-
-    if (delta == 0) delta = lin->state_len;
-    if (rank != lin->state_len) {
-        K = diagnosticMatrix(lin, lin->state_len);
-        rank = rankOfMatrix(K, lin->field_size);
-
-        MatrixMath::print(K);
-        K.clear();
-
-        cout << rank << " - rank" << endl;
-    }
-
-    ullint mu = pow((ullint)lin->field_size, ((ullint)rank));
-    ullint compVar = pow((ullint)lin->field_size, (ullint)lin->state_len);
-
-    cout << "mu=" << mu << ", delta=" << delta << endl;
-    cout << "Automaton is " << ((mu == compVar) ? "" : "not ") << "minimal."
-         << endl;
 }
 
 #endif

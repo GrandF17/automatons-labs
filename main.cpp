@@ -5,8 +5,9 @@
 
 #include "./level 1/lfsr.cpp"
 #include "./level 1/linear.cpp"
-#include "./level 2/lab-two.cpp"
-#include "./level 3/lab-three.cpp"
+#include "./level 2/lfsr.cpp"
+#include "./level 2/linear.cpp"
+#include "./level 3/lab.cpp"
 
 // for simplicity
 using namespace std;
@@ -90,8 +91,7 @@ int main(int argc, char** argv) {
             findLinEqClasses(
                 &lin);  // run lab two - search of equvivalent classes
         if (parametersBool[3])
-            graphConnectivityCheck<linearAutomaton,
-                                   linearAutomaton::VertexType>(&lin);
+            graphConnectivityCheck<linearAutomaton, vTypeLin>(&lin);
     }
 
     if (parametersBool[1]) {
@@ -112,8 +112,7 @@ int main(int argc, char** argv) {
             findLFSREqClasses(
                 &lfsr);  // run lab two - search of equvivalent classes
         if (parametersBool[3])
-            graphConnectivityCheck<shiftRegister, shiftRegister::VertexType>(
-                &lfsr);
+            graphConnectivityCheck<shiftRegister, vTypeReg>(&lfsr);
     }
 
     return 0;

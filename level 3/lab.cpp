@@ -100,24 +100,24 @@ void printGraph(vector<vector<T>> adjacencyList) {
 template <typename T>
 vector<vector<T>> initDirectedGraph(linearAutomaton* lin) {
     vector<vector<T>> adjacencyList;
-    vector<T> currentState(lin->state_len, 0);
+    vector<T> currentState(lin->stateLen, 0);
 
     /**
      * go through all states
      */
-    for (size_t i = 0; i < pow(lin->field_size, lin->state_len) - 1; i++) {
-        vector<T> currentInput(lin->input_len, 0);
+    for (size_t i = 0; i < pow(lin->field_size, lin->stateLen) - 1; i++) {
+        vector<T> currentInput(lin->inputLen, 0);
         vector<T> stateVector;
 
         /**
          * go through all inputs for current state
          */
-        for (size_t j = 0; j < pow(lin->field_size, lin->input_len); j++) {
+        for (size_t j = 0; j < pow(lin->field_size, lin->inputLen); j++) {
             linStep(lin, currentInput);
 
             T asosiatedNumToVector = 0;
-            for (size_t rank = 0; rank < lin->state_len; rank++) {
-                T degree = lin->state_len - rank - 1;
+            for (size_t rank = 0; rank < lin->stateLen; rank++) {
+                T degree = lin->stateLen - rank - 1;
                 asosiatedNumToVector +=
                     lin->state[rank] * pow(lin->field_size, degree);
             }
@@ -144,7 +144,7 @@ vector<vector<T>> initDirectedGraph(shiftRegister* lfsr) {
     /**
      * go through all states
      */
-    for (size_t i = 0; i < pow(2, lfsr->state_len); i++) {
+    for (size_t i = 0; i < pow(2, lfsr->stateLen); i++) {
         vector<T> stateVector;
 
         /**
