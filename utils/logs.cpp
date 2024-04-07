@@ -27,4 +27,46 @@ void printNumberAsBits(T num) {
     cout << num << " (" << bits << ")" << endl;
 }
 
+/**
+ * print only N elements at the beginning and N at the end:
+ */
+template <typename T>
+void printGraphCompact(vector<vector<T>> adjacencyList) {
+    size_t AMOUNT_TO_DISPLAY = 3;
+
+    for (size_t i = 0; i < adjacencyList.size(); i++) {
+        // printing 'start state':
+        cout << "[" << i << "] --> ";
+
+        // print all states where we can go from our 'start state':
+        for (size_t j = 0; j < adjacencyList[i].size(); j++) {
+            /**
+             * print only part of vectors where goes state
+             * (4 in the begininng & 4 in the end)
+             */
+            if (adjacencyList[i].size() > 10 &&
+                (j > AMOUNT_TO_DISPLAY &&
+                 j < adjacencyList[i].size() - (AMOUNT_TO_DISPLAY + 1)))
+                continue;
+
+            cout << "[" << adjacencyList[i][j] << "] ";
+            if (j == AMOUNT_TO_DISPLAY) cout << "... ";
+        }
+        cout << endl;
+    }
+}
+
+/**
+ * print all vereces of graph:
+ */
+template <typename T>
+void printGraph(vector<vector<T>> adjacencyList) {
+    for (size_t i = 0; i < adjacencyList.size(); i++) {
+        cout << "[" << i << "] --> ";
+        for (size_t j = 0; j < adjacencyList[i].size(); j++)
+            cout << "[" << adjacencyList[i][j] << "] ";
+
+        cout << endl;
+    }
+}
 #endif

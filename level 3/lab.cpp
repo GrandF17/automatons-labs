@@ -1,82 +1,25 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
 
 #include <cmath>
-#include <stack>
 #include <unordered_map>
-#include <unordered_set>
 #include <vector>
 
-#include "../interfaces/interfaces.h"
+// by using 1 lab we can make steps in lin/lfsr automatons
 #include "../level 1/lfsr.cpp"
 #include "../level 1/linear.cpp"
+
+// adiditonal modules/functions (utils)
+#include "../interfaces/interfaces.h"
+#include "../utils/algebra.cpp"
+#include "../utils/graphAlgos.cpp"
+#include "../utils/logs.cpp"
 
 using namespace std;
 
 #ifndef LAB_THREE
 #define LAB_THREE
-
-template <typename T>
-vector<T> incrementVector(vector<T> state, T mod) {
-    // increment junior rank by mod
-    int juniorRank = state.size() - 1;
-    state[juniorRank]++;
-
-    // we move 1 up the ranks while there is overflow
-    for (int i = juniorRank; i >= 0; i--) {
-        if (state[i] >= (T)mod) {
-            state[i] %= (T)mod;
-            if (i - 1 >= 0) state[i - 1]++;
-        }
-    }
-
-    return state;
-}
-
-/**
- * print our linear graph:
- */
-template <typename T>
-void printGraphCompact(vector<vector<T>> adjacencyList) {
-    size_t AMOUNT_TO_DISPLAY = 3;
-
-    for (size_t i = 0; i < adjacencyList.size(); i++) {
-        // printing 'start state':
-        cout << "[" << i << "] --> ";
-
-        // print all states where we can go from our 'start state':
-        for (size_t j = 0; j < adjacencyList[i].size(); j++) {
-            /**
-             * print only part of vectors where goes state
-             * (4 in the begininng & 4 in the end)
-             */
-            if (adjacencyList[i].size() > 10 &&
-                (j > AMOUNT_TO_DISPLAY &&
-                 j < adjacencyList[i].size() - (AMOUNT_TO_DISPLAY + 1)))
-                continue;
-
-            cout << "[" << adjacencyList[i][j] << "] ";
-            if (j == AMOUNT_TO_DISPLAY) cout << "... ";
-        }
-        cout << endl;
-    }
-}
-
-/**
- * print our lfsr graph:
- */
-template <typename T>
-void printGraph(vector<vector<T>> adjacencyList) {
-    for (size_t i = 0; i < adjacencyList.size(); i++) {
-        cout << "[" << i << "] --> ";
-        for (size_t j = 0; j < adjacencyList[i].size(); j++)
-            cout << "[" << adjacencyList[i][j] << "] ";
-
-        cout << endl;
-    }
-}
 
 // ======== ===== ===
 // creating graph ===
@@ -163,142 +106,6 @@ vector<vector<T>> initDirectedGraph(shiftRegister* lfsr) {
     return adjacencyList;
 }
 
-// ========== ===
-// algorythms ===
-// ========== ===
-
-template <typename T>
-vector<vector<T>> reverseGraph(vector<vector<T>> graph) {
-    vector<vector<T>> reversedGraph(graph.size());
-
-    for (size_t i = 0; i < graph.size(); ++i)
-        for (const T& neighbor : graph[i]) reversedGraph[neighbor].push_back(i);
-
-    return reversedGraph;
-}
-
-template <typename T>
-vector<vector<T>> initUndirectedGraph(vector<vector<T>> directedGraph) {
-    vector<vector<T>> reversedGraph = reverseGraph(directedGraph);
-
-    for (size_t i = 0; i < directedGraph.size(); i++)
-        directedGraph[i].insert(directedGraph[i].end(),
-                                reversedGraph[i].begin(),
-                                reversedGraph[i].end());
-
-    /**
-     * now graph is undirected
-     */
-    return directedGraph;
-}
-
-enum vertexStatus { WHITE, GRAY, BLACK };
-
-/**
- * Depth First Search (DFS) for a Graph
- */
-template <typename T>
-vector<T> DFS(vector<vector<T>>& graph, unordered_map<T, vertexStatus>& visited,
-              T start) {
-    /**
-     * if vertex is BLACK (we cannot go anywhere from it)
-     * so we return empty vector
-     */
-    if (visited[start] == vertexStatus::BLACK) return {};
-
-    visited[start] = vertexStatus::GRAY;
-
-    vector<T> exitOrder;
-    for (const T& neighbor : graph[start]) {
-        if (visited[neighbor] == vertexStatus::WHITE) {
-            vector<T> subResult = DFS(graph, visited, neighbor);
-            exitOrder.insert(exitOrder.end(), subResult.begin(),
-                             subResult.end());
-        }
-    }
-
-    visited[start] = vertexStatus::BLACK;
-    exitOrder.push_back(start);
-    return exitOrder;
-}
-
-template <typename T>
-vector<T> getExitOrder(vector<vector<T>>& graph) {
-    /**
-     * creating map [{0 -> status}, {1 -> status}, ...]
-     * and fill it whith vertexStatus.WHITE
-     */
-    unordered_map<T, vertexStatus> visited;
-    for (size_t vertex = 0; vertex < graph.size(); vertex++)
-        visited[vertex] = vertexStatus::WHITE;
-
-    vector<T> exitOrder;
-    for (T i = 0; i < graph.size(); i++) {
-        if (visited[i] == vertexStatus::WHITE) {
-            vector<T> subResult = DFS(graph, visited, i);
-            exitOrder.insert(exitOrder.end(), subResult.begin(),
-                             subResult.end());
-        }
-    }
-
-    return exitOrder;
-}
-
-/**
- * performing Kosaraju algorithm to check if adjacency list (graph) is strongly
- * connected
- */
-template <typename T>
-bool kosarajuAlgorithm(vector<vector<T>>& adjacencyList) {
-    /**
-     * Step 1:
-     * Build the reversed graph
-     */
-    vector<vector<T>> reversed = reverseGraph(adjacencyList);
-    if (false) printGraph(reversed);
-
-    /**
-     * Step 2:
-     * First DFS to get the exit order of vertices
-     */
-    vector<T> exitOrder = getExitOrder(adjacencyList);
-
-    // copy of ordered list of verteces to stack
-    stack<T> orderStack;
-    for (const T& vertex : exitOrder) orderStack.push(vertex);
-
-    /**
-     * Step 3:
-     * Second DFS using the order from the stack
-     */
-    unordered_map<T, vertexStatus> visited;
-    size_t componentsAmount = 0;
-
-    while (!orderStack.empty()) {
-        T current = orderStack.top();
-        orderStack.pop();
-
-        if (visited[current] == vertexStatus::WHITE) {
-            // Strongly Connected Component
-            vector<T> currentSCC = DFS(reversed, visited, current);
-
-            if (true) {
-                cout << "Component: ";
-                for (const T& vertex : currentSCC) cout << vertex << " ";
-                cout << endl;
-            }
-
-            componentsAmount++;
-        }
-    }
-
-    if (componentsAmount > 1)
-        cout << "Amount of components of strong connectivity: "
-             << componentsAmount << endl;
-
-    return componentsAmount == 1;
-}
-
 // ==== ============= ===
 // main functionality ===
 // ==== ============= ===
@@ -345,8 +152,7 @@ void graphConnectivityCheck(AutomatonType* automaton) {
     /**
      * detecting if automaton is connected
      */
-    vector<vector<vertexType>> undirectedGraph =
-        initUndirectedGraph(adjacencyList);
+    vector<vector<vertexType>> undirectedGraph = dirToUndirGraph(adjacencyList);
     if (false) printGraph(undirectedGraph);
 
     vector<vertexType> visitResult =

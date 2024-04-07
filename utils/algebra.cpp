@@ -2,7 +2,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
 
 #include <algorithm>
 #include <bitset>
@@ -19,7 +18,7 @@ using namespace std;
 #define ALGEBRA
 
 /**
- * serching a Aber C such that A * C = 1 (mod q)
+ * serching a number C such that A * C = 1 (mod q)
  */
 vTypeLin modInverse(vTypeLin A, vTypeLin mod) {
     int m0 = mod, t, q;
@@ -42,13 +41,30 @@ vTypeLin modInverse(vTypeLin A, vTypeLin mod) {
 }
 
 /**
- * serching a Aber C such that A * C = B (mod q)
+ * serching a number C such that A * C = B (mod q)
  */
 vTypeLin findMultiplier(vTypeLin A, vTypeLin B, vTypeLin q) {
     int A_inverse = modInverse(A, q);
     int C = (A_inverse * B) % q;
 
     return C;
+}
+
+template <typename T>
+vector<T> incrementVector(vector<T> state, T mod) {
+    // increment junior rank by mod
+    int juniorRank = state.size() - 1;
+    state[juniorRank]++;
+
+    // we move 1 up the ranks while there is overflow
+    for (int i = juniorRank; i >= 0; i--) {
+        if (state[i] >= (T)mod) {
+            state[i] %= (T)mod;
+            if (i - 1 >= 0) state[i - 1]++;
+        }
+    }
+
+    return state;
 }
 
 #endif
