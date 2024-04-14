@@ -56,6 +56,20 @@ void printGraphCompact(vector<vector<T>> adjacencyList) {
     }
 }
 
+template <typename T>
+vector<vector<T>> listToMatrix(vector<vector<T>> &adjacencyList) {
+    T numNodes = adjacencyList.size();
+    vector<vector<T>> matrix(numNodes, vector<T>(numNodes, 0));
+
+    for (size_t i = 0; i < numNodes; ++i) {
+        for (size_t j : adjacencyList[i]) {
+            matrix[i][j] = 1;
+        }
+    }
+
+    return matrix;
+}
+
 /**
  * print all vereces of graph:
  */
@@ -68,5 +82,22 @@ void printGraph(vector<vector<T>> adjacencyList) {
 
         cout << endl;
     }
+
+    // vector<vector<T>> matrix = listToMatrix(adjacencyList);
+    // ofstream outFile("matrix.txt");
+
+    // if (outFile.is_open()) {
+    //     for (size_t i = 0; i < matrix.size(); ++i) {
+    //         for (size_t j = 0; j < matrix[i].size(); ++j) {
+    //             outFile << matrix[i][j] << (j == matrix.size() - 1 ? "" : ",
+    //             ");
+    //         }
+    //         outFile << endl;
+    //     }
+    //     outFile.close();
+    //     cout << "Matrix has been written to file 'matrix.txt'" << endl;
+    // } else {
+    //     cerr << "Unable to open file" << endl;
+    // }
 }
 #endif

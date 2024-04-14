@@ -48,7 +48,7 @@ vector<vector<T>> initDirectedGraph(linearAutomaton* lin) {
     /**
      * go through all states
      */
-    for (size_t i = 0; i < pow(lin->field_size, lin->stateLen) - 1; i++) {
+    for (size_t i = 0; i < pow(lin->field_size, lin->stateLen); i++) {
         vector<T> currentInput(lin->inputLen, 0);
         vector<T> stateVector;
 
@@ -68,6 +68,24 @@ vector<vector<T>> initDirectedGraph(linearAutomaton* lin) {
             stateVector.push_back(asosiatedNumToVector);
             currentInput = incrementVector(currentInput, (T)lin->field_size);
         }
+
+        // @COMMENTLINE
+        // if (i == 1330) {
+        //     cout << "1330 --> ";
+        //     for (size_t j = 0; j < stateVector.size(); j++) {
+        //         cout << stateVector[j] << " ";
+        //     }
+
+        //     cout << endl;
+        //     cout << endl;
+        // }
+
+        // @COMMENTLINE
+        // auto it = find(stateVector.begin(), stateVector.end(), (T)1330);
+        // if (it != stateVector.end()) {
+        //     cout << "i = " << i << endl;
+        //     cout << endl;
+        // }
 
         adjacencyList.push_back(stateVector);
         currentState = incrementVector(currentState, (T)lin->field_size);
