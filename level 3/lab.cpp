@@ -9,6 +9,7 @@
 // by using 1 lab we can make steps in lin/lfsr automatons
 #include "../level 1/lfsr.cpp"
 #include "../level 1/linear.cpp"
+#include "../level 2/linear.cpp"
 
 // adiditonal modules/functions (utils)
 #include "../interfaces/interfaces.h"
@@ -48,25 +49,25 @@ vector<vector<T>> initDirectedGraph(linearAutomaton* lin) {
     /**
      * go through all states
      */
-    for (size_t i = 0; i < pow(lin->field_size, lin->stateLen); i++) {
+    for (size_t i = 0; i < pow(lin->fieldSize, lin->stateLen); i++) {
         vector<T> currentInput(lin->inputLen, 0);
         vector<T> stateVector;
 
         /**
          * go through all inputs for current state
          */
-        for (size_t j = 0; j < pow(lin->field_size, lin->inputLen); j++) {
+        for (size_t j = 0; j < pow(lin->fieldSize, lin->inputLen); j++) {
             linStep(lin, currentInput);
 
             T asosiatedNumToVector = 0;
             for (size_t rank = 0; rank < lin->stateLen; rank++) {
                 T degree = lin->stateLen - rank - 1;
                 asosiatedNumToVector +=
-                    lin->state[rank] * pow(lin->field_size, degree);
+                    lin->state[rank] * pow(lin->fieldSize, degree);
             }
 
             stateVector.push_back(asosiatedNumToVector);
-            currentInput = incrementVector(currentInput, (T)lin->field_size);
+            currentInput = incrementVector(currentInput, (T)lin->fieldSize);
         }
 
         // @COMMENTLINE
@@ -88,11 +89,77 @@ vector<vector<T>> initDirectedGraph(linearAutomaton* lin) {
         // }
 
         adjacencyList.push_back(stateVector);
-        currentState = incrementVector(currentState, (T)lin->field_size);
+        currentState = incrementVector(currentState, (T)lin->fieldSize);
     }
 
     return adjacencyList;
 }
+
+bool linearCritereaCheck(linearAutomaton* lin) {
+    vector<vector<vTypeLin>> matrix;
+    vTypeLin previousRank = 0;
+    size_t index = 0;
+
+    while (true) {
+        if (index == 0) {
+            for (size_t j = 0; j < lin->B.size(); j++) {
+                matrix.push_back(lin->B[j]);
+            }
+            previousRank = rankOfMatrix(matrix, (vTypeLin)lin->fieldSize);
+
+            cout << endl;
+            cout << "Matrix B: " << endl;
+            MatrixMath::print(matrix);
+            cout << "Rank: " << rankOfMatrix(matrix, (vTypeLin)lin->fieldSize)
+                 << endl;
+
+            index++;
+            continue;
+        }
+
+        /**
+         * creating a matrix with 1 along the main diagonal
+         */
+        vector<vector<vTypeLin>> aMatrixPowered(
+            lin->A.size(), vector<vTypeLin>(lin->A[0].size(), 0));
+        for (size_t i = 0; i < aMatrixPowered.size(); ++i)
+            aMatrixPowered[i][i] = 1;
+
+        /**
+         * raising A to the i-th power
+         */
+        for (size_t aDegree = 0; aDegree < index; aDegree++)
+            aMatrixPowered =
+                MatrixMath::mod(MatrixMath::mul(aMatrixPowered, lin->A),
+                                (vTypeLin)lin->fieldSize);
+
+        /**
+         * B * A^i mod fieldSize
+         */
+        vector<vector<vTypeLin>> tmp = MatrixMath::mod(
+            MatrixMath::mul(lin->B, aMatrixPowered), (vTypeLin)lin->fieldSize);
+        for (size_t j = 0; j < tmp.size(); j++) {
+            matrix.push_back(tmp[j]);
+        }
+
+        vTypeLin rank = rankOfMatrix(matrix, (vTypeLin)lin->fieldSize);
+        cout << "Matrix (B ...  B * A^" << index << "): " << endl;
+        MatrixMath::print(matrix);
+        cout << "Rank: " << rank << endl;
+
+        if (previousRank == rank) break;
+        previousRank = rankOfMatrix(matrix, (vTypeLin)lin->fieldSize);
+
+        index++;
+    }
+
+    cout << "Criteria says that automaton is "
+         << (lin->stateLen == previousRank ? "" : "not ")
+         << "strongly connected." << endl;
+    return lin->stateLen == previousRank;
+}
+
+bool linearCritereaCheck(shiftRegister* lfsr) { return false; }
 
 /**
  * lfsr implementation
@@ -153,7 +220,8 @@ void graphConnectivityCheck(AutomatonType* automaton) {
     /**
      * detecting if automaton is STRONGLY connected
      */
-    bool isStronglyConnected = kosarajuAlgorithm(adjacencyList);
+    bool isStronglyConnected =
+        kosarajuAlgorithm(adjacencyList) || linearCritereaCheck(automaton);
     if (isStronglyConnected) {
         printConclusion(isStronglyConnected, true);
         return;

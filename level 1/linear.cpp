@@ -32,7 +32,7 @@ vector<vector<vTypeLin>> readMatrix(int x, int y, ifstream& file) {
 struct linearAutomaton initLinear(ifstream& file) {
     struct linearAutomaton lin;
 
-    file >> lin.field_size;
+    file >> lin.fieldSize;
     file.ignore(2);
     file >> lin.inputLen >> lin.stateLen >> lin.outputLen;
     file.ignore(2);
@@ -56,11 +56,11 @@ vector<vTypeLin> linStep(struct linearAutomaton* lin, vector<vTypeLin> input) {
     vector<vTypeLin> new_state =
         MatrixMath::mod(MatrixMath::add(MatrixMath::mul(lin->state, lin->A),
                                         MatrixMath::mul(input, lin->B)),
-                        (vTypeLin)lin->field_size);
+                        (vTypeLin)lin->fieldSize);
     vector<vTypeLin> output =
         MatrixMath::mod(MatrixMath::add(MatrixMath::mul(lin->state, lin->C),
                                         MatrixMath::mul(input, lin->D)),
-                        (vTypeLin)lin->field_size);
+                        (vTypeLin)lin->fieldSize);
 
     /**
      * setting new state in linear automaton
@@ -71,7 +71,7 @@ vector<vTypeLin> linStep(struct linearAutomaton* lin, vector<vTypeLin> input) {
 
 void linOperation(struct linearAutomaton* lin) {
     cout << "\nEnter initial state (" << lin->stateLen << " numbers [0;"
-         << (lin->field_size - 1) << "]):\n";
+         << (lin->fieldSize - 1) << "]):\n";
 
     for (size_t i = 0; i < lin->stateLen; i++) {
         vTypeLin linStateStr;
@@ -82,7 +82,7 @@ void linOperation(struct linearAutomaton* lin) {
     while (true) {
         vector<vTypeLin> input(lin->inputLen);
         cout << "\n\nEnter new input (" << lin->inputLen << " numbers [0;"
-             << (lin->field_size - 1) << "]):\n";
+             << (lin->fieldSize - 1) << "]):\n";
 
         for (size_t i = 0; i < lin->inputLen; i++) {
             vTypeLin outputStr;

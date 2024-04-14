@@ -37,7 +37,7 @@ struct LFSREqClass {
 // ====== ==========
 
 struct linearAutomaton {
-    size_t field_size;                     // q
+    size_t fieldSize;                      // q
     size_t inputLen, stateLen, outputLen;  // m,n,k
     vector<vector<vTypeLin>> A, B, C, D;
     vector<vTypeLin> state;

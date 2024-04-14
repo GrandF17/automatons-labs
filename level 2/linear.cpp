@@ -54,14 +54,13 @@ vector<vector<vTypeLin>> diagnosticMatrix(struct linearAutomaton* lin,
         for (size_t aDegree = 0; aDegree < i; aDegree++)
             aMatrixPowered =
                 MatrixMath::mod(MatrixMath::mul(aMatrixPowered, lin->A),
-                                (vTypeLin)lin->field_size);
+                                (vTypeLin)lin->fieldSize);
 
         /**
          * C * A^i mod fieldSize
          */
-        diagnosticMatrix.push_back(
-            MatrixMath::mod(MatrixMath::mul(aMatrixPowered, lin->C),
-                            (vTypeLin)lin->field_size));
+        diagnosticMatrix.push_back(MatrixMath::mod(
+            MatrixMath::mul(aMatrixPowered, lin->C), (vTypeLin)lin->fieldSize));
     }
 
     /**
@@ -119,7 +118,7 @@ void findLinEqClasses(linearAutomaton* lin) {
 
     for (size_t i = 1; i <= lin->stateLen; i++) {
         vector<vector<vTypeLin>> K = diagnosticMatrix(lin, i);
-        rank = rankOfMatrix(K, (vTypeLin)lin->field_size);
+        rank = rankOfMatrix(K, (vTypeLin)lin->fieldSize);
 
         MatrixMath::print(K);
         K.clear();
@@ -134,8 +133,8 @@ void findLinEqClasses(linearAutomaton* lin) {
 
     if (delta == 0) delta = lin->stateLen;
 
-    vTypeLin mu = pow((vTypeLin)lin->field_size, ((vTypeLin)rank));
-    vTypeLin compVar = pow((vTypeLin)lin->field_size, (vTypeLin)lin->stateLen);
+    vTypeLin mu = pow((vTypeLin)lin->fieldSize, ((vTypeLin)rank));
+    vTypeLin compVar = pow((vTypeLin)lin->fieldSize, (vTypeLin)lin->stateLen);
 
     cout << "Amount of equal state classes: " << mu << endl;
     cout << "Diff coefficient: " << delta << endl;
