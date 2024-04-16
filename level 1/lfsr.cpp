@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "../interfaces/interfaces.h"
+#include "../libraries/Matrix.h"
 #include "../utils/logs.cpp"
 
 using namespace std;

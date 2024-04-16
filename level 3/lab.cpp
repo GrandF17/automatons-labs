@@ -44,52 +44,37 @@ using namespace std;
 template <typename T>
 vector<vector<T>> initDirectedGraph(linearAutomaton* lin) {
     vector<vector<T>> adjacencyList;
-    vector<T> currentState(lin->stateLen, 0);
+    lin->state = vector<T>(lin->stateLen, 0);
 
     /**
      * go through all states
      */
-    for (size_t i = 0; i < pow(lin->fieldSize, lin->stateLen); i++) {
+    for (size_t i = 0; i < (T)pow(lin->fieldSize, lin->stateLen); i++) {
         vector<T> currentInput(lin->inputLen, 0);
-        vector<T> stateVector;
+        vector<T> allStates;
 
         /**
          * go through all inputs for current state
+         *
+         * we convert the data type to T because(T)pow returns a floating point
+         * value and may have errors
          */
-        for (size_t j = 0; j < pow(lin->fieldSize, lin->inputLen); j++) {
+        for (size_t j = 0; j < (T)pow(lin->fieldSize, lin->inputLen); j++) {
             linStep(lin, currentInput);
 
             T asosiatedNumToVector = 0;
             for (size_t rank = 0; rank < lin->stateLen; rank++) {
                 T degree = lin->stateLen - rank - 1;
                 asosiatedNumToVector +=
-                    lin->state[rank] * pow(lin->fieldSize, degree);
+                    lin->state[rank] * (T)pow(lin->fieldSize, degree);
             }
 
-            stateVector.push_back(asosiatedNumToVector);
+            allStates.push_back(asosiatedNumToVector);
             currentInput = incrementVector(currentInput, (T)lin->fieldSize);
         }
 
-        // @COMMENTLINE
-        // if (i == 1330) {
-        //     cout << "1330 --> ";
-        //     for (size_t j = 0; j < stateVector.size(); j++) {
-        //         cout << stateVector[j] << " ";
-        //     }
-
-        //     cout << endl;
-        //     cout << endl;
-        // }
-
-        // @COMMENTLINE
-        // auto it = find(stateVector.begin(), stateVector.end(), (T)1330);
-        // if (it != stateVector.end()) {
-        //     cout << "i = " << i << endl;
-        //     cout << endl;
-        // }
-
-        adjacencyList.push_back(stateVector);
-        currentState = incrementVector(currentState, (T)lin->fieldSize);
+        adjacencyList.push_back(allStates);
+        lin->state = incrementVector(lin->state, (T)lin->fieldSize);
     }
 
     return adjacencyList;
@@ -126,7 +111,7 @@ bool linearCritereaCheck(linearAutomaton* lin) {
             aMatrixPowered[i][i] = 1;
 
         /**
-         * raising A to the i-th power
+         * raising A to the i-th(T)power
          */
         for (size_t aDegree = 0; aDegree < index; aDegree++)
             aMatrixPowered =
@@ -165,15 +150,15 @@ bool linearCritereaCheck(shiftRegister* lfsr) { return false; }
  * lfsr implementation
  */
 template <typename T>
-vector<vector<T>> initDirectedGraph(shiftRegister* lfsr) {
+vector<vector<T>> initDirectedGraph(struct shiftRegister* lfsr) {
     vector<vector<T>> adjacencyList;
-    T currentState = 0;
 
     /**
      * go through all states
      */
-    for (size_t i = 0; i < pow(2, lfsr->stateLen); i++) {
-        vector<T> stateVector;
+    for (size_t state = 0; state < (T)pow(2, lfsr->stateLen); state++) {
+        vector<T> allStates;
+        lfsr->state = state;
 
         /**
          * go through all inputs (0/1) for current state
@@ -181,11 +166,10 @@ vector<vector<T>> initDirectedGraph(shiftRegister* lfsr) {
          */
         for (size_t j = 0; j < 2; j++) {
             LFSRStep(lfsr, j);
-            stateVector.push_back(lfsr->state);
+            allStates.push_back(lfsr->state);
         }
 
-        adjacencyList.push_back(stateVector);
-        currentState++;
+        adjacencyList.push_back(allStates);
     }
 
     return adjacencyList;
@@ -221,7 +205,7 @@ void graphConnectivityCheck(AutomatonType* automaton) {
      * detecting if automaton is STRONGLY connected
      */
     bool isStronglyConnected =
-        kosarajuAlgorithm(adjacencyList) || linearCritereaCheck(automaton);
+        kosarajuAlgorithm(adjacencyList) /**|| linearCritereaCheck(automaton)*/;
     if (isStronglyConnected) {
         printConclusion(isStronglyConnected, true);
         return;

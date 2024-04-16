@@ -133,8 +133,9 @@ void findLinEqClasses(linearAutomaton* lin) {
 
     if (delta == 0) delta = lin->stateLen;
 
-    vTypeLin mu = pow((vTypeLin)lin->fieldSize, ((vTypeLin)rank));
-    vTypeLin compVar = pow((vTypeLin)lin->fieldSize, (vTypeLin)lin->stateLen);
+    vTypeLin mu = (vTypeLin)pow((vTypeLin)lin->fieldSize, ((vTypeLin)rank));
+    vTypeLin compVar =
+        (vTypeLin)pow((vTypeLin)lin->fieldSize, (vTypeLin)lin->stateLen);
 
     cout << "Amount of equal state classes: " << mu << endl;
     cout << "Diff coefficient: " << delta << endl;

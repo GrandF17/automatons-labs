@@ -82,22 +82,5 @@ void printGraph(vector<vector<T>> adjacencyList) {
 
         cout << endl;
     }
-
-    // vector<vector<T>> matrix = listToMatrix(adjacencyList);
-    // ofstream outFile("matrix.txt");
-
-    // if (outFile.is_open()) {
-    //     for (size_t i = 0; i < matrix.size(); ++i) {
-    //         for (size_t j = 0; j < matrix[i].size(); ++j) {
-    //             outFile << matrix[i][j] << (j == matrix.size() - 1 ? "" : ",
-    //             ");
-    //         }
-    //         outFile << endl;
-    //     }
-    //     outFile.close();
-    //     cout << "Matrix has been written to file 'matrix.txt'" << endl;
-    // } else {
-    //     cerr << "Unable to open file" << endl;
-    // }
 }
 #endif

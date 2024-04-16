@@ -93,36 +93,6 @@ vector<T> DFS(vector<vector<T>>& graph, unordered_map<T, vertexStatus>& visited,
     return exitOrder;
 }
 
-// @COMMENTLINE
-// template <typename T>
-// vector<T> DFS(vector<vector<T>>& graph, unordered_map<T, vertexStatus>&
-// visited,
-//               T start) {
-//     stack<T> stack;
-//     vector<T> exitOrder;
-
-//     stack.push(start);
-//     while (!stack.empty()) {
-//         T current = stack.top();
-//         stack.pop();
-
-//         if (visited[current] == vertexStatus::BLACK) continue;
-
-//         visited[current] = vertexStatus::GRAY;
-//         exitOrder.push_back(current);
-
-//         for (const T& neighbor : graph[current]) {
-//             if (visited[neighbor] == vertexStatus::WHITE) {
-//                 stack.push(neighbor);
-//             }
-//         }
-
-//         visited[current] = vertexStatus::BLACK;
-//     }
-
-//     return exitOrder;
-// }
-
 template <typename T>
 vector<T> getExitOrder(vector<vector<T>>& graph) {
     /**
