@@ -1,5 +1,4 @@
 #include <bitset>
-#include <cmath>
 #include <iostream>
 #include <stack>
 #include <unordered_map>

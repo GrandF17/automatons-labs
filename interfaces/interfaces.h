@@ -1,4 +1,3 @@
-#include "../libraries/BigNumber.h"
 #include "vector"
 
 #ifndef INTERFACES

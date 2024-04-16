@@ -14,8 +14,20 @@
 
 using namespace std;
 
-#ifndef LAB_TWO_LIN
+#ifndef ALGEBRA
 #define ALGEBRA
+
+/**
+ * @param a allowed ONLY arithmetic type
+ * @param b asllowd ONLY as integer type
+ */
+template <typename T, typename D>
+typename enable_if<is_arithmetic<T>::value && is_integral<D>::value, T>::type
+powEnchanced(T a, D b) {
+    T result = 1;
+    for (D i = 0; i < b; ++i) result *= a;
+    return result;
+}
 
 /**
  * serching a number C such that A * C = 1 (mod q)

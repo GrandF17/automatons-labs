@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <cmath>
 #include <unordered_map>
 #include <vector>
 
@@ -44,7 +43,13 @@ using namespace std;
 template <typename T>
 vector<vector<T>> initDirectedGraph(linearAutomaton* lin) {
     vector<vector<T>> adjacencyList;
+
+    /**
+     * declare initial state
+     * + set up zero vector in lin automaton struct
+     */
     lin->state = vector<T>(lin->stateLen, 0);
+    vector<T> state = lin->state;
 
     /**
      * go through all states
@@ -56,25 +61,72 @@ vector<vector<T>> initDirectedGraph(linearAutomaton* lin) {
         /**
          * go through all inputs for current state
          *
-         * we convert the data type to T because(T)pow returns a floating point
-         * value and may have errors
+         * we convert the data type to T because(T)pow returns a floating
+         * point value and may have errors
          */
         for (size_t j = 0; j < (T)pow(lin->fieldSize, lin->inputLen); j++) {
+            /**
+             * cause state changes every step we need to set
+             * it back on each input
+             */
+            lin->state = state;
+
             linStep(lin, currentInput);
 
-            T asosiatedNumToVector = 0;
+            T associatedNumToVector = 0;
             for (size_t rank = 0; rank < lin->stateLen; rank++) {
                 T degree = lin->stateLen - rank - 1;
-                asosiatedNumToVector +=
-                    lin->state[rank] * (T)pow(lin->fieldSize, degree);
+
+                /**
+                 * HOLY MOLY POW FROM THE OFICIAL C++
+                 * LIB WORKS INCORRECT!!!
+                 *
+                 * sooooo... using own version for our cases...
+                 */
+                associatedNumToVector +=
+                    lin->state[rank] * powEnchanced(lin->fieldSize, degree);
             }
 
-            allStates.push_back(asosiatedNumToVector);
+            allStates.push_back(associatedNumToVector);
             currentInput = incrementVector(currentInput, (T)lin->fieldSize);
         }
 
         adjacencyList.push_back(allStates);
-        lin->state = incrementVector(lin->state, (T)lin->fieldSize);
+        state = incrementVector(state, (T)lin->fieldSize);
+    }
+
+    return adjacencyList;
+}
+
+/**
+ * lfsr implementation
+ */
+template <typename T>
+vector<vector<T>> initDirectedGraph(struct shiftRegister* lfsr) {
+    vector<vector<T>> adjacencyList;
+
+    /**
+     * go through all states
+     */
+    for (size_t state = 0; state < (T)pow(2, lfsr->stateLen); state++) {
+        vector<T> allStates;
+
+        /**
+         * go through all inputs (0/1) for current state
+         * j - input (0/1)
+         */
+        for (size_t j = 0; j < 2; j++) {
+            /**
+             * cause state changes every step we need to set
+             * it back on each input
+             */
+            lfsr->state = state;
+
+            LFSRStep(lfsr, j);
+            allStates.push_back(lfsr->state);
+        }
+
+        adjacencyList.push_back(allStates);
     }
 
     return adjacencyList;
@@ -85,6 +137,7 @@ bool linearCritereaCheck(linearAutomaton* lin) {
     vTypeLin previousRank = 0;
     size_t index = 0;
 
+    cout << "================================" << endl;  // additional line skip
     while (true) {
         if (index == 0) {
             for (size_t j = 0; j < lin->B.size(); j++) {
@@ -92,7 +145,6 @@ bool linearCritereaCheck(linearAutomaton* lin) {
             }
             previousRank = rankOfMatrix(matrix, (vTypeLin)lin->fieldSize);
 
-            cout << endl;
             cout << "Matrix B: " << endl;
             MatrixMath::print(matrix);
             cout << "Rank: " << rankOfMatrix(matrix, (vTypeLin)lin->fieldSize)
@@ -141,39 +193,11 @@ bool linearCritereaCheck(linearAutomaton* lin) {
     cout << "Criteria says that automaton is "
          << (lin->stateLen == previousRank ? "" : "not ")
          << "strongly connected." << endl;
+    cout << "================================" << endl;  // additional line skip
     return lin->stateLen == previousRank;
 }
 
 bool linearCritereaCheck(shiftRegister* lfsr) { return false; }
-
-/**
- * lfsr implementation
- */
-template <typename T>
-vector<vector<T>> initDirectedGraph(struct shiftRegister* lfsr) {
-    vector<vector<T>> adjacencyList;
-
-    /**
-     * go through all states
-     */
-    for (size_t state = 0; state < (T)pow(2, lfsr->stateLen); state++) {
-        vector<T> allStates;
-        lfsr->state = state;
-
-        /**
-         * go through all inputs (0/1) for current state
-         * j - input (0/1)
-         */
-        for (size_t j = 0; j < 2; j++) {
-            LFSRStep(lfsr, j);
-            allStates.push_back(lfsr->state);
-        }
-
-        adjacencyList.push_back(allStates);
-    }
-
-    return adjacencyList;
-}
 
 // ==== ============= ===
 // main functionality ===
@@ -202,10 +226,14 @@ void graphConnectivityCheck(AutomatonType* automaton) {
     if (false) printGraph(adjacencyList);
 
     /**
+     * watch if criteria is met
+     */
+    linearCritereaCheck(automaton);
+
+    /**
      * detecting if automaton is STRONGLY connected
      */
-    bool isStronglyConnected =
-        kosarajuAlgorithm(adjacencyList) /**|| linearCritereaCheck(automaton)*/;
+    bool isStronglyConnected = kosarajuAlgorithm(adjacencyList);
     if (isStronglyConnected) {
         printConclusion(isStronglyConnected, true);
         return;

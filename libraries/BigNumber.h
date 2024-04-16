@@ -376,11 +376,11 @@ class BigNumber {
         return deleteZeroes(result);
     }
 
-    BigNumber pow(BigNumber degree) {
+    BigNumber powBN(BigNumber degree) {
         if (BigNumber(num).eq(zero())) return zero();
         if (degree.eq(zero())) return BigNumber("1");
         return BigNumber(num).mul(
-            BigNumber(num).pow(degree.sub(BigNumber("1"))));
+            BigNumber(num).powBN(degree.sub(BigNumber("1"))));
     }
 
     BigNumber div(BigNumber divisor) {
