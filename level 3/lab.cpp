@@ -41,7 +41,7 @@ using namespace std;
  * --> [0, 1, 1, 0] ~ 1*3^2 + 1*3^1 + 0*3^0 = 12
  */
 template <typename T>
-vector<vector<T>> initDirectedGraph(linearAutomaton* lin) {
+vector<vector<T>> initDirectedGraph(struct linearAutomaton* lin) {
     vector<vector<T>> adjacencyList;
 
     /**

@@ -16,7 +16,9 @@ using namespace std;
 /**
  * required struct for correct work of Kosaraju Algorithm
  */
-enum vertexStatus { WHITE, GRAY, BLACK };
+enum vertexStatus { WHITE,
+                    GRAY,
+                    BLACK };
 
 // ========== =====
 // executable part:
@@ -110,13 +112,6 @@ vector<T> getExitOrder(vector<vector<T>>& graph) {
                              subResult.end());
         }
     }
-
-    // @COMMENTLINE
-    // cout << "Exit order: " << endl;
-    // for (size_t k = 0; k < exitOrder.size(); k++) {
-    //     cout << exitOrder[k] << " ";
-    // }
-    // cout << endl;
 
     return exitOrder;
 }
